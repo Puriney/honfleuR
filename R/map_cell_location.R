@@ -45,8 +45,8 @@ setMethod("map.cell2", "seurat",
     bins.avail.probs.scale <- bins.avail.probs - matrix(rep(tmp, 64), nrow = 64,
                                                         byrow = TRUE)
 
-    TMP_THREHOLD <- -9.2
-    bins.avail.probs.scale[bins.avail.probs.scale < TMP_THREHOLD] <- TMP_THREHOLD
+    THREHOLD <- -9.2
+    bins.avail.probs.scale[bins.avail.probs.scale < THREHOLD] <- THREHOLD
 
     cell.bins.prob <- exp(apply(bins.avail.probs.scale, 1, safe_fxn))
     cell.bins.prob <- cell.bins.prob / sum(cell.bins.prob)
@@ -99,5 +99,65 @@ setMethod("initial.mapping", "seurat",
     rownames(object@final.prob) <- paste("bin.",
                                          rownames(object@final.prob), sep="")
     return(object)
+  }
+)
+
+
+slimdmvnorm=function (x, mean = rep(0, p), sigma = diag(p), log = FALSE) 
+{
+    x <- matrix(x, ncol = length(x))
+  p <- ncol(x)
+    dec <- tryCatch(chol(sigma), error = function(e) e)
+    tmp <- backsolve(dec, t(x) - mean, transpose = TRUE)
+      rss <- colSums(tmp^2)
+      logretval <- -sum(log(diag(dec))) - 0.5 * p * log(2 * pi) - 0.5 * rss
+        names(logretval) <- rownames(x)
+        logretval
+}
+
+#' Quantitative refinement of spatial inferences
+#'
+#' Refines the initial mapping with more complex models that allow gene
+#' expression to vary quantitatively across bins (instead of 'on' or 'off'),
+#' and that also considers the covariance structure between genes.
+#'
+#' Full details given in spatial mapping manuscript.
+#'
+#' @param object Seurat object
+#' @param genes.use Genes to use to drive the refinement procedure.
+#' @return Seurat object, where mapping probabilities for each bin are stored
+#' in object@@final.prob
+#' @import fpc
+#' @export
+setGeneric("refined.mapping2",
+           function(object,genes.use) standardGeneric("refined.mapping2"))
+#' @export
+setMethod("refined.mapping2", "seurat",
+  function(object,genes.use) {
+    genes.use <- intersect(genes.use, rownames(zf@imputed))
+    cells.max <- t(sapply(colnames(zf@data),
+                          function(x) calc_cell_centroid(zf@final.prob[, x])
+                          ))
+    all.mu <- sapply(genes.use,
+                     function(gene) sapply(1:64,
+                                           function(bin) mean(as.numeric(zf@imputed[gene, fetch.closest(bin, cells.max, 2*length(genes.use))] ))))
+    all.cov <- list()
+    for (x in 1:64) {
+      all.cov[[x]] <- cov(t(zf@imputed[genes.use, fetch.closest(x, cells.max, 2* length(genes.use))]))
+    }
+
+    mv.probs <- sapply(colnames(zf@data), 
+                       function(my.cell) sapply(1:64 , function(bin) slimdmvnorm(as.numeric(zf@imputed[genes.use, my.cell]), 
+                                                                                 as.numeric(all.mu[bin, genes.use]), 
+                                                                                 all.cov[[bin]]
+                                                                                 )
+                       )
+                       )
+    mv.final <- exp(sweep(mv.probs, 2, apply(my.probs, 2, log_add)))
+    object@final.prob <- data.frame(mv.final)
+    return(object)
+
+
+
   }
 )
