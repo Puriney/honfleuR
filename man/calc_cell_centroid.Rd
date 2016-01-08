@@ -10,8 +10,7 @@ calc_cell_centroid(probs, bins = 64)
 \item{probs}{A vector of probability of cell originating from all bins. Length
 is equal to \code{bins}.}
 
-\item{bins}{A scalar. Number of bins (default: 64). It should be the product
-of \code{xbins} and \code{ybins}.}
+\item{bins}{A scalar. Number of bins (default: 64).}
 }
 \description{
 For given one cell, calculate spatial centroid, i.e. center of mass, of the
