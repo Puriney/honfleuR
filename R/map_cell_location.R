@@ -125,28 +125,41 @@ slimdmvnorm=function (x, mean = rep(0, p), sigma = diag(p), log = FALSE)
 #'
 #' @param object Seurat object
 #' @param genes.use Genes to use to drive the refinement procedure.
+#' @param cells.num Number of centroids candiates to be used to estimate mean
+#' and variance parameters of for each cell and each bin. Default: 2n where n is
+#' number of \code{genes.use}.
+#' @param bins Number of bins. Default: 64.
 #' @return Seurat object, where mapping probabilities for each bin are stored
 #' in object@@final.prob
 #' @import fpc
 #' @export
-setGeneric("refined.mapping2",
-           function(object,genes.use) standardGeneric("refined.mapping2"))
+setGeneric("refined_mapping",
+           function(object, genes.use, cells.num, bins = 64)
+             standardGeneric("refined_mapping"))
 #' @export
-setMethod("refined.mapping2", "seurat",
-  function(object,genes.use) {
+setMethod("refined_mapping", "seurat",
+  function(object, genes.use, cells.num, bins = 64) {
     genes.use <- intersect(genes.use, rownames(zf@imputed))
-    cells.max <- t(sapply(colnames(zf@data),
+    if (missingArg(cells.num)) {
+      cells.num <- 2 * length(genes.use)
+    }
+    cells.name <- colnames(zf@data)
+    centroids.pos <- t(sapply(cells.name,
                           function(x) calc_cell_centroid(zf@final.prob[, x])
                           ))
+    bins.centroids <- sapply(1:bins, function(b) fetch_closest(b, centroids.pos,
+                                                               cells.num))
+    ####
     all.mu <- sapply(genes.use,
                      function(gene) sapply(1:64,
-                                           function(bin) mean(as.numeric(zf@imputed[gene, fetch.closest(bin, cells.max, 2*length(genes.use))] ))))
+                                           function(bin) mean(as.numeric(zf@imputed[gene, fetch.closest(bin, centroids.pos, 2*length(genes.use))] ))))
+
     all.cov <- list()
     for (x in 1:64) {
-      all.cov[[x]] <- cov(t(zf@imputed[genes.use, fetch.closest(x, cells.max, 2* length(genes.use))]))
+      all.cov[[x]] <- cov(t(zf@imputed[genes.use, fetch.closest(x, centroids.pos, 2* length(genes.use))]))
     }
 
-    mv.probs <- sapply(colnames(zf@data), 
+    mv.probs <- sapply(colnames(zf@data),
                        function(my.cell) sapply(1:64 , function(bin) slimdmvnorm(as.numeric(zf@imputed[genes.use, my.cell]), 
                                                                                  as.numeric(all.mu[bin, genes.use]), 
                                                                                  all.cov[[bin]]
