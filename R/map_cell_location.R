@@ -177,10 +177,8 @@ setMethod("refined_mapping", "seurat",
     gb.mu <- gb.mu[, -1]
     gb.mu <- gb.mu[, paste0('bin', seq_len(bins))]
 
-    all.cov <- list()
-    for (x in 1:64) {
-      all.cov[[x]] <- cov(t(zf@imputed[genes.use, fetch.closest(x, centroids.pos, 2* length(genes.use))]))
-    }
+    gb.cov <- lapply(seq_len(bins), function(b)
+                     cov(t(zf@imputed[genes.use, bins.centroids[b, ]])))
 
     mv.probs <- sapply(colnames(zf@data),
                        function(my.cell) sapply(1:64 , function(bin) slimdmvnorm(as.numeric(zf@imputed[genes.use, my.cell]), 
