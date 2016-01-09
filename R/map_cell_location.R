@@ -1,11 +1,11 @@
 
 # Internal, not documented for now
 #' @export
-setGeneric("map.cell2",
+setGeneric("map_cell",
   function(object, cell.name, do.plot = FALSE, safe.use = TRUE,
-           text.val = NULL, do.rev = FALSE) standardGeneric("map.cell2")
+           text.val = NULL, do.rev = FALSE) standardGeneric("map_cell")
 )
-setMethod("map.cell2", "seurat",
+setMethod("map_cell", "seurat",
   function(object, cell.name, do.plot = FALSE, safe.use = TRUE,
            text.val = NULL, do.rev = FALSE) {
     insitu.matrix <- object@insitu.matrix
@@ -86,34 +86,21 @@ setMethod("map.cell2", "seurat",
 #' @return Seurat object, where mapping probabilities for each bin are stored
 #' in object@@final.prob
 #' @export
-setGeneric("initial.mapping",
-  function(object,cells.use=NULL) standardGeneric("initial.mapping")
+setGeneric("initial_mapping",
+  function(object,cells.use=NULL) standardGeneric("initial_mapping")
 )
 #' @export
-setMethod("initial.mapping", "seurat",
+setMethod("initial_mapping", "seurat",
   function(object, cells.use = NULL) {
     cells.use <- set.ifnull(cells.use, colnames(object@data))
     every.prob <- sapply(cells.use,
-                         function(x) map.cell2(object, x, FALSE, FALSE))
+                         function(x) map_cell(object, x, FALSE, FALSE))
     object@final.prob <- data.frame(every.prob)
     rownames(object@final.prob) <- paste("bin.",
                                          rownames(object@final.prob), sep="")
     return(object)
   }
 )
-
-
-slimdmvnorm=function (x, mean = rep(0, p), sigma = diag(p), log = FALSE) 
-{
-    x <- matrix(x, ncol = length(x))
-  p <- ncol(x)
-    dec <- tryCatch(chol(sigma), error = function(e) e)
-    tmp <- backsolve(dec, t(x) - mean, transpose = TRUE)
-      rss <- colSums(tmp^2)
-      logretval <- -sum(log(diag(dec))) - 0.5 * p * log(2 * pi) - 0.5 * rss
-        names(logretval) <- rownames(x)
-        logretval
-}
 
 #' Quantitative refinement of spatial inferences
 #'
@@ -134,6 +121,7 @@ slimdmvnorm=function (x, mean = rep(0, p), sigma = diag(p), log = FALSE)
 #' @import fpc
 #' @importFrom dplyr summarise group_by
 #' @importFrom tidyr spread
+#' @importFrom mixtools logdmvnorm
 #' @export
 setGeneric("refined_mapping",
            function(object, genes.use, cells.num, bins = 64)
@@ -171,27 +159,26 @@ setMethod("refined_mapping", "seurat",
     gb.mu <- summarise(group_by(gbcenexpr.df, permu.genes, permu.bins),
                        mu = mean(expr))
     gb.mu <- as.data.frame(gb.mu)
-    # optional
     gb.mu <- spread(gb.mu, permu.bins, mu)
     rownames(gb.mu) <- gb.mu$permu.genes
     gb.mu <- gb.mu[, -1]
-    gb.mu <- gb.mu[, paste0('bin.', seq_len(bins))]
+    gb.mu <- gb.mu[genes.use, paste0('bin.', seq_len(bins))]
 
     gb.cov <- lapply(seq_len(bins), function(b)
                      cov(t(zf@imputed[genes.use, bins.centroids[b, ]])))
 
-    mv.probs <- sapply(colnames(zf@data),
-                       function(my.cell) sapply(1:64 , function(bin) slimdmvnorm(as.numeric(zf@imputed[genes.use, my.cell]), 
-                                                                                 as.numeric(all.mu[bin, genes.use]), 
-                                                                                 all.cov[[bin]]
-                                                                                 )
-                       )
-                       )
+    ## estimate the density for multivariate normal distribution
+    imputed.expr <- t(zf@imputed[genes.use, cells.name])
+    mvnorm.logden <- t(sapply(seq_len(bins), function(b) {
+                            b.mv.mu = gb.mu[, b]
+                            b.mv.cov = gb.cov[[b]]
+                            logdmvnorm(y = imputed.expr,
+                                       mu = b.mv.mu, sigma = b.mv.cov)
+                     }))
+
+    ## substract the log_add
     mv.final <- exp(sweep(mv.probs, 2, apply(my.probs, 2, log_add)))
     object@final.prob <- data.frame(mv.final)
     return(object)
-
-
-
   }
 )
