@@ -133,6 +133,7 @@ slimdmvnorm=function (x, mean = rep(0, p), sigma = diag(p), log = FALSE)
 #' in object@@final.prob
 #' @import fpc
 #' @importFrom dplyr summarise group_by
+#' @importFrom tidyr spread
 #' @export
 setGeneric("refined_mapping",
            function(object, genes.use, cells.num, bins = 64)
@@ -161,15 +162,20 @@ setMethod("refined_mapping", "seurat",
     gbcenexpr.df <- gbcenexpr.df[temp.rep.idx, ]
     permu.genes <- rep(genes.use, each = length(permu.centrds))
     gbcenexpr.df <- cbind(permu.genes, gbcenexpr.df, stringsAsFactors = FALSE)
-    ### !!!
-    gbcenexpr.df$expr <- zf@imputed[gbcenexpr.df$permu.genes,
-                                    gbcenexpr.df$permu.centrds]
+    gbcenexpr.df$expr <- unlist(sapply(seq_len(nrow(gbcenexpr.df)),
+                              function(i) {
+                                r = gbcenexpr.df$permu.genes[i]
+                                c = gbcenexpr.df$permu.centrds[i]
+                                as.numeric(zf@imputed[r, c])
+                              }))
     gb.mu <- summarise(group_by(gbcenexpr.df, permu.genes, permu.bins),
                        mu = mean(expr))
     gb.mu <- as.data.frame(gb.mu)
-    # all.mu <- sapply(genes.use,
-                     # function(gene) sapply(1:64,
-                                           # function(bin) mean(as.numeric(zf@imputed[gene, fetch.closest(bin, centroids.pos, 2*length(genes.use))] ))))
+    # optional
+    gb.mu <- spread(gb.mu, permu.bins, mu)
+    rownames(gb.mu) <- gb.mu$permu.genes
+    gb.mu <- gb.mu[, -1]
+    gb.mu <- gb.mu[, paste0('bin', seq_len(bins))]
 
     all.cov <- list()
     for (x in 1:64) {
