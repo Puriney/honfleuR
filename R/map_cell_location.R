@@ -132,6 +132,7 @@ slimdmvnorm=function (x, mean = rep(0, p), sigma = diag(p), log = FALSE)
 #' @return Seurat object, where mapping probabilities for each bin are stored
 #' in object@@final.prob
 #' @import fpc
+#' @importFrom dplyr summarise group_by
 #' @export
 setGeneric("refined_mapping",
            function(object, genes.use, cells.num, bins = 64)
@@ -147,12 +148,28 @@ setMethod("refined_mapping", "seurat",
     centroids.pos <- t(sapply(cells.name,
                           function(x) calc_cell_centroid(zf@final.prob[, x])
                           ))
-    bins.centroids <- sapply(1:bins, function(b) fetch_closest(b, centroids.pos,
-                                                               cells.num))
-    ####
-    all.mu <- sapply(genes.use,
-                     function(gene) sapply(1:64,
-                                           function(bin) mean(as.numeric(zf@imputed[gene, fetch.closest(bin, centroids.pos, 2*length(genes.use))] ))))
+    bins.centroids <- t(sapply(1:bins, function(b) fetch_closest(b, centroids.pos,
+                                                               cells.num)))
+    ## estimate mean of imputed expression value of landmarked genes in all
+    ## bins
+    permu.centrds <- c(bins.centroids) ## matrix to vector in row-wise
+    cells.num <- ncol(bins.centroids) ## cells.num is 2n+1 due to compatible modal
+    permu.bins <- rep(paste0("bin.", 1:bins), each = cells.num)
+    gbcenexpr.df <- data.frame(permu.bins, permu.centrds,
+                               stringsAsFactors = FALSE)
+    temp.rep.idx <- rep(seq_len(length(permu.centrds)), length(genes.use))
+    gbcenexpr.df <- gbcenexpr.df[temp.rep.idx, ]
+    permu.genes <- rep(genes.use, each = length(permu.centrds))
+    gbcenexpr.df <- cbind(permu.genes, gbcenexpr.df, stringsAsFactors = FALSE)
+    ### !!!
+    gbcenexpr.df$expr <- zf@imputed[gbcenexpr.df$permu.genes,
+                                    gbcenexpr.df$permu.centrds]
+    gb.mu <- summarise(group_by(gbcenexpr.df, permu.genes, permu.bins),
+                       mu = mean(expr))
+    gb.mu <- as.data.frame(gb.mu)
+    # all.mu <- sapply(genes.use,
+                     # function(gene) sapply(1:64,
+                                           # function(bin) mean(as.numeric(zf@imputed[gene, fetch.closest(bin, centroids.pos, 2*length(genes.use))] ))))
 
     all.cov <- list()
     for (x in 1:64) {
