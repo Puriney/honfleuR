@@ -153,9 +153,9 @@ setMethod("refined_mapping", "seurat",
                                                                cells.num)))
     ## estimate mean of imputed expression value of landmarked genes in all
     ## bins
-    permu.centrds <- c(bins.centroids) ## matrix to vector in row-wise
+    permu.centrds <- c(t(bins.centroids)) ## matrix to vector
     cells.num <- ncol(bins.centroids) ## cells.num is 2n+1 due to compatible modal
-    permu.bins <- rep(paste0("bin.", 1:bins), each = cells.num)
+    permu.bins <- rep(paste0("bin.", seq_len(bins)), each = cells.num)
     gbcenexpr.df <- data.frame(permu.bins, permu.centrds,
                                stringsAsFactors = FALSE)
     temp.rep.idx <- rep(seq_len(length(permu.centrds)), length(genes.use))
@@ -175,7 +175,7 @@ setMethod("refined_mapping", "seurat",
     gb.mu <- spread(gb.mu, permu.bins, mu)
     rownames(gb.mu) <- gb.mu$permu.genes
     gb.mu <- gb.mu[, -1]
-    gb.mu <- gb.mu[, paste0('bin', seq_len(bins))]
+    gb.mu <- gb.mu[, paste0('bin.', seq_len(bins))]
 
     gb.cov <- lapply(seq_len(bins), function(b)
                      cov(t(zf@imputed[genes.use, bins.centroids[b, ]])))
