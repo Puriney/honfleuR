@@ -129,13 +129,13 @@ setGeneric("refined_mapping",
 #' @export
 setMethod("refined_mapping", "seurat",
   function(object, genes.use, cells.num, bins = 64) {
-    genes.use <- intersect(genes.use, rownames(zf@imputed))
+    genes.use <- intersect(genes.use, rownames(object@imputed))
     if (missingArg(cells.num)) {
       cells.num <- 2 * length(genes.use)
     }
-    cells.name <- colnames(zf@data)
+    cells.name <- colnames(object@data)
     centroids.pos <- t(sapply(cells.name,
-                          function(x) calc_cell_centroid(zf@final.prob[, x])
+                          function(x) calc_cell_centroid(object@final.prob[, x])
                           ))
     bins.centroids <- t(sapply(1:bins, function(b) fetch_closest(b, centroids.pos,
                                                                cells.num)))
@@ -154,7 +154,7 @@ setMethod("refined_mapping", "seurat",
                               function(i) {
                                 r = gbcenexpr.df$permu.genes[i]
                                 c = gbcenexpr.df$permu.centrds[i]
-                                as.numeric(zf@imputed[r, c])
+                                as.numeric(object@imputed[r, c])
                               }))
     gb.mu <- summarise(group_by(gbcenexpr.df, permu.genes, permu.bins),
                        mu = mean(expr))
@@ -165,10 +165,10 @@ setMethod("refined_mapping", "seurat",
     gb.mu <- gb.mu[genes.use, paste0('bin.', seq_len(bins))]
 
     gb.cov <- lapply(seq_len(bins), function(b)
-                     cov(t(zf@imputed[genes.use, bins.centroids[b, ]])))
+                     cov(t(object@imputed[genes.use, bins.centroids[b, ]])))
 
     ## estimate the density for multivariate normal distribution
-    imputed.expr <- t(zf@imputed[genes.use, cells.name])
+    imputed.expr <- t(object@imputed[genes.use, cells.name])
     mvnorm.logden <- t(sapply(seq_len(bins), function(b) {
                             b.mv.mu = gb.mu[, b]
                             b.mv.cov = gb.cov[[b]]
