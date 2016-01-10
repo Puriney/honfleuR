@@ -1,4 +1,11 @@
 
+set.ifnull <- function(x,y) {
+  if (is.null(x)) {
+    x <- y
+  }
+  return(x)
+}
+
 #' @title Distance Calculation
 #'
 #' @description Compute distance between query vector and all rows (or columns)

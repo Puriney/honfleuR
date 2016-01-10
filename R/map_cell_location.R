@@ -93,6 +93,7 @@ setGeneric("initial_mapping",
 setMethod("initial_mapping", "seurat",
   function(object, cells.use = NULL) {
     cells.use <- set.ifnull(cells.use, colnames(object@data))
+    # cells.use <- ifelse(is.null(cells.use), colnames(object@data), cells.use)
     every.prob <- sapply(cells.use,
                          function(x) map_cell(object, x, FALSE, FALSE))
     object@final.prob <- data.frame(every.prob)
@@ -177,7 +178,7 @@ setMethod("refined_mapping", "seurat",
                      }))
 
     ## substract the log_add
-    mv.final <- exp(sweep(mv.probs, 2, apply(my.probs, 2, log_add)))
+    mv.final <- exp(sweep(mvnorm.logden, 2, apply(mvnorm.logden, 2, log_add)))
     object@final.prob <- data.frame(mv.final)
     return(object)
   }
