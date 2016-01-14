@@ -1,9 +1,4 @@
-## pkg
-library(Seurat)
-library(mixtools)
-library(dplyr)
-library(tidyr)
-library(microbenchmark)
+source('tests/depends.R')
 
 if (!exists("run_perf")){
   assign("run_perf", FALSE)
@@ -11,10 +6,8 @@ if (!exists("run_perf")){
 
 ## src the codes to be tested
 source("R/map_cell_location.R")
-source("R/utility.R")
 
-outLog <- "./tests/fig_cells_mapping/cells_mapping.log"
-theme_set(theme_gray(base_size = 22))
+outLog <- paste0(test_log_dir, "/", "cells_mapping.log")
 
 ##
 ## Load seurat object with fitted
@@ -56,7 +49,7 @@ if (all.equal(zf0@final.prob, zf1@final.prob)){
       times = 10
     )
     print(res)
-    pdf("./tests/fig_cells_mapping/init_mapping.pdf", 7, 7)
+    pdf(paste0(test_res_dir, "/init_mapping.pdf"), 7, 7)
     p <- autoplot(res) +
       ggtitle(paste0('Initial mapping on random ',
                      length(cells.test), " cells"))
@@ -92,7 +85,7 @@ if (all.equal(zf0@final.prob, zf1@final.prob)){
       times = 5
     )
     print(res)
-    pdf("./tests/fig_cells_mapping/refined_mapping.pdf", 7, 7)
+    pdf(paste0(test_res_dir,"/fig_cells_mapping/refined_mapping.pdf"), 7, 7)
     p <- autoplot(res) +
       ggtitle('Refined mapping')
     print(p)
@@ -102,4 +95,5 @@ if (all.equal(zf0@final.prob, zf1@final.prob)){
 } else {
   warning("xx Fail: refined_mapping fail")
 }
+sink()
 sink()
