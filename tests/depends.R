@@ -13,4 +13,4 @@ if (!dir.exists(test_res_dir)){
   dir.create(test_res_dir)
 }
 
-theme_set(theme_gray(base_size = 22))
+theme_set(theme_bw(base_size = 22))

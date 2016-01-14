@@ -31,9 +31,9 @@ if (all.equal(zf0@mix.probs, zf1@mix.probs)){
   )
   print(res)
   cat("-- generating pdf", mytime, "\n")
-  pdf(paste0(test_res_dir, '/bimodal.pdf'), 7, 7)
+  pdf(paste0(test_res_dir, '/bimodal.pdf'), 10, 5)
   p <- autoplot(res) +
-    ggtitle('Estimating landmarked genes bimodal')
+    ggtitle(paste0('Random ', length(genes), ' landmarked genes bimodal'))
   print(p)
   dev.off()
 } else{
