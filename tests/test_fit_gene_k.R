@@ -15,7 +15,7 @@ g <- insitu.genes[1]
 sink(outLog)
 cat("## Testing bimodal estimationg ... ", mytime, "\n")
 zf0 <- fit.gene.k(zf, g, do.plot=FALSE, do.k = 2, start.pct=mean(zf@insitu.matrix[, g]), num.iter = 1)
-zf1 <- fit.gene.k.fast(zf, g, do.plot=FALSE, do.k = 2, start.pct=mean(zf@insitu.matrix[, g]), num.iter = 1)
+zf1 <- fit_gene_k(zf, g, do.plot=FALSE, do.k = 2, start.pct=mean(zf@insitu.matrix[, g]), num.iter = 1)
 
 if (all.equal(zf0@mix.probs, zf1@mix.probs)){
   cat(">> Passing: bimodal distributions are correctly estimated ",
@@ -26,7 +26,7 @@ if (all.equal(zf0@mix.probs, zf1@mix.probs)){
   cat("-- using random insitu genes for evaluation: ", genes, "\n")
   res <- microbenchmark(
     seurat = for(i in rev(genes)) zf=fit.gene.k(zf,i,do.plot=FALSE,do.k = 2,start.pct=mean(zf@insitu.matrix[,i]),num.iter = 1),
-    seurat2 = for(i in rev(genes)) zf=fit.gene.k.fast(zf,i,do.plot=FALSE,do.k = 2,start.pct=mean(zf@insitu.matrix[,i]),num.iter = 1),
+    seurat2 = for(i in rev(genes)) zf=fit_gene_k(zf,i,do.plot=FALSE,do.k = 2,start.pct=mean(zf@insitu.matrix[,i]),num.iter = 1),
     times = 5
   )
   print(res)
