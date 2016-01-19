@@ -90,16 +90,16 @@ setMethod("map_cell", "seurat",
 #' in object@@final.prob
 #' @export
 setGeneric("initial_mapping",
-  function(object,cells.use=NULL) standardGeneric("initial_mapping")
+  function(object, cells.use=NULL, gene.exclude = NULL)
+    standardGeneric("initial_mapping")
 )
-#' @export
 setMethod("initial_mapping", "seurat",
-  function(object, cells.use = NULL) {
+  function(object, cells.use = NULL, gene.exclude = NULL) {
     cells.use <- set.ifnull(cells.use, colnames(object@data))
     # cells.use <- ifelse(is.null(cells.use), colnames(object@data), cells.use)
     every.prob <- sapply(cells.use,
                          function(x) map_cell(object, x,
-                                              gene.exclude = NULL,
+                                              gene.exclude = gene.exclude,
                                               FALSE, FALSE))
     object@final.prob <- data.frame(every.prob)
     rownames(object@final.prob) <- paste("bin.",
