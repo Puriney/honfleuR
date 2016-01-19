@@ -2,15 +2,18 @@
 # Internal, not documented for now
 #' @export
 setGeneric("map_cell",
-  function(object, cell.name, do.plot = FALSE, safe.use = TRUE,
+  function(object, cell.name, gene.exclude = NULL,
+           do.plot = FALSE, safe.use = TRUE,
            text.val = NULL, do.rev = FALSE) standardGeneric("map_cell")
 )
 setMethod("map_cell", "seurat",
-  function(object, cell.name, do.plot = FALSE, safe.use = TRUE,
+  function(object, cell.name, gene.exclude = NULL,
+           do.plot = FALSE, safe.use = TRUE,
            text.val = NULL, do.rev = FALSE) {
     insitu.matrix <- object@insitu.matrix
     insitu.genes <- colnames(insitu.matrix)
     insitu.genes <- intersect(insitu.genes, rownames(object@imputed))
+    insitu.genes <- setdiff(insitu.use, gene.exclude)
 
     insitu.use <- insitu.matrix[, insitu.genes]
     imputed.use <- object@imputed[insitu.genes, ]
@@ -95,7 +98,9 @@ setMethod("initial_mapping", "seurat",
     cells.use <- set.ifnull(cells.use, colnames(object@data))
     # cells.use <- ifelse(is.null(cells.use), colnames(object@data), cells.use)
     every.prob <- sapply(cells.use,
-                         function(x) map_cell(object, x, FALSE, FALSE))
+                         function(x) map_cell(object, x,
+                                              gene.exclude = NULL,
+                                              FALSE, FALSE))
     object@final.prob <- data.frame(every.prob)
     rownames(object@final.prob) <- paste("bin.",
                                          rownames(object@final.prob), sep="")
