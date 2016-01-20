@@ -1,28 +1,5 @@
-eval_seurat_innter0 <- function(object, g){
-  cat(">> Evaluting gene ", g , "\n")
-  ## intinal mapping excluding specific landmark gene
-  object <- initial_mapping(object, gene.exclude = g)
-  ## refined mapping excluding same specific landmark gene
-  num.pc <- 3
-  num.genes <- 6
-  genes.use <- pcTopGenes(object, pc.use = 1:num.pc, num.genes = num.genes,
-                          use.full = TRUE, do.balanced = TRUE)
-  new.imputed <- genes.use[!genes.use %in% rownames(object@imputed)]
-  predictor.use <- unique(c(object@var.genes,
-                            pca.sig.genes(object, pcs.use = c(1,2,3),
-                                          pval.cut = 1e-2, use.full = TRUE)
-  ))
-  object <- addImputedScore(object, genes.use = predictor.use,
-                            genes.fit = new.imputed,
-                            do.print = FALSE, s.use = 40, gram = FALSE)
-  # genes.use     <- setdiff(genes.use, g)
-  object <- refined.mapping(object, genes.use)
-  ## generating roc object and AUC value
-  calc.insitu(object, gene = g)
-}
-
 eval_seurat_innter <- function(object, g){
-  cat(">> Evaluting gene ", g , "\n")
+  cat(">> Evaluating gene ", g , "\n")
   ## intinal mapping excluding specific landmark gene
   object <- initial_mapping(object, gene.exclude = g)
   ## refined mapping excluding same specific landmark gene
@@ -98,6 +75,14 @@ setGeneric("eval_seurat",
 setMethod("eval_seurat", "seurat",
   function(object, genes.eval, dir, parallel = TRUE) {
     genes.roc.obj <- list()
+    genes.eval.default <- c("ADMP", "OSR1", "CDX4", "SOX3", "CHD", "SZL")
+    if (missingArg(genes.eval)){
+      genes.eval <- genes.eval.default
+      cat(genes.eval, " to be evaluated\n")
+    }
+    if (missingArg(dir)){
+      dir <- getwd()
+    }
     if (!parallel) {
       genes.roc.obj <- lapply(genes.eval, function(x)
                               eval_seurat_innter(object, x))
@@ -110,9 +95,6 @@ setMethod("eval_seurat", "seurat",
     genes.auc.val <- sapply(genes.roc.obj, function(o) o$auc)
     auc.dec.idx <- order(genes.auc.val, na.last = TRUE, decreasing = TRUE)
     genes.roc.obj <- genes.roc.obj[auc.dec.idx]
-    # assign("genes.roc.list", genes.roc.obj)
-
-    genes.eval.default <- c("ADMP", "OSR1", "CDX4", "SOX3", "CHD", "SZL")
 
     genes.roc.default <- genes.roc.obj[names(genes.roc.obj) %in% genes.eval.default]
     pdf(paste0(dir, '/eval_seurat1.pdf'), 7, 7)
