@@ -85,7 +85,7 @@ setMethod("fill_imputed_expr", "seurat",
                              plsr_preds_expr(t(x), y, y.name =g, do.print)
                            } else {}
                          })
-    fitted.expr <- as.data.frame(t(lasso.fits))
+    fitted.expr <- as.data.frame(t(fitted.expr))
 
     genes.old <- intersect(genes.fit, rownames(object@imputed))
     genes.new <- setdiff(genes.fit, rownames(object@imputed))
