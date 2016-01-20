@@ -11,4 +11,4 @@ genes.eval <- colnames(zf@insitu.matrix)
 
 roc.list.original <- eval_seurat(zf, genes.eval = genes.eval,
                             dir = test_res_dir, parallel = T)
-save(roc.list.orignal, file = paste0(test_res_dir, "/roc_list_original.Rdata"))
+save(roc.list.original, file = paste0(test_res_dir, "/roc_list_original.Rdata"))
