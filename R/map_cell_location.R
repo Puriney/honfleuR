@@ -13,7 +13,7 @@ setMethod("map_cell", "seurat",
     insitu.matrix <- object@insitu.matrix
     insitu.genes <- colnames(insitu.matrix)
     insitu.genes <- intersect(insitu.genes, rownames(object@imputed))
-    insitu.genes <- setdiff(insitu.use, gene.exclude)
+    insitu.genes <- setdiff(insitu.genes, gene.exclude)
 
     insitu.use <- insitu.matrix[, insitu.genes]
     imputed.use <- object@imputed[insitu.genes, ]
