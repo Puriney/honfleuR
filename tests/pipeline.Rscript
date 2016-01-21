@@ -1,0 +1,57 @@
+#!/usr/bin/env Rscript
+
+source('R/bimodal_distribution.R')
+source('R/eval_perf.R')
+source('R/impute_expr.R')
+source('R/map_cell_location.R')
+source('R/utility.R')
+
+source('tests/depends.Rscript')
+
+load('/Users/yunyan/Yun_Codes/Projects/seurat_dev/output_part2.Robj')
+
+#
+# Perform imputation
+#
+require(pls)
+genes.sig <- pca.sig.genes(zf, pcs.use = c(1,2,3), pval.cut = 1e-2,
+                           use.full = TRUE)
+insitu.genes <- colnames(zf@insitu.matrix)
+lasso.genes.use <- unique(c(genes.sig, zf@var.genes))
+zf1 <- fill_imputed_expr(zf, genes.use = lasso.genes.use,
+                        genes.fit = insitu.genes,
+                        scheme = "plsr", do.print=FALSE)
+save(zf1, file = '/Users/yunyan/Yun_Codes/Projects/seurat_dev/output_part2_plsr.Robj')
+#
+# Fitting model
+#
+for(i in rev(insitu.genes)) {
+  zf1 <- fit_gene_k(zf1, i, do.plot = FALSE, do.k = 2,
+                   start.pct = mean(zf1@insitu.matrix[,i]),
+                   num.iter = 1)
+}
+#
+# Initial mapping
+#
+zf1 <- initial_mapping(zf1)
+#
+# Refined mapping
+#
+num.pc=3; num.genes=6
+genes.use=pcTopGenes(zf1,pc.use = 1:num.pc,num.genes = num.genes,use.full = TRUE,do.balanced = TRUE)
+new.imputed=genes.use[!genes.use%in%rownames(zf1@imputed)]
+lasso.genes.use=unique(c(zf1@var.genes,pca.sig.genes(zf1,pcs.use = c(1,2,3), pval.cut = 1e-2, use.full = TRUE)))
+
+# zf1
+plsr.fit <- fill_imputed_expr(zf1, genes.use = lasso.genes.use,
+                        genes.fit = new.imputed,
+                        scheme = "plsr",
+                        do.print = TRUE)
+zf1 <- refined_mapping(zf1, genes.use)
+
+save(zf1, file = 'tests/fig_log/zf_plsr.Rdata')
+## Finish running ##
+
+roc.list.plsr <- eval_seurat(zf1, insitu.genes, dir = 'tests/plsr_imputation', parallel = T, scheme = "plsr")
+save(roc.list.plsr, file = 'tests/plsr_imputation/roc.list.plsr.Rdata')
+
