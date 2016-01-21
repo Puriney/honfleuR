@@ -1,4 +1,4 @@
-eval_seurat_innter <- function(object, g){
+eval_seurat_innter <- function(object, g, scheme){
   cat(">> Evaluating gene ", g , "\n")
   ## intinal mapping excluding specific landmark gene
   object <- initial_mapping(object, gene.exclude = g)
@@ -12,11 +12,18 @@ eval_seurat_innter <- function(object, g){
                             pca.sig.genes(object, pcs.use = c(1,2,3),
                                           pval.cut = 1e-2, use.full = TRUE)
                             ))
-  object <- addImputedScore(object, genes.use = predictor.use,
-                            genes.fit = new.imputed,
-                            do.print = FALSE, s.use = 40, gram = FALSE)
+  if (scheme == "lasso"){
+    object <- addImputedScore(object, genes.use = predictor.use,
+                              genes.fit = new.imputed,
+                              do.print = FALSE, s.use = 40, gram = FALSE)
+  } else if (scheme == "plsr") {
+    object <- fill_imputed_expr(object, genes.use = predictor.use,
+                                genes.fit = new.imputed,
+                                scheme = "plsr",
+                                do.print = FALSE)
+  } else {}
   # genes.use     <- setdiff(genes.use, g)
-  object <- refined.mapping(object, genes.use)
+  object <- refined_mapping(object, genes.use)
   ## generating roc object and AUC value
   probs.use <- object@final.prob
   data.use  <- exp(object@data) - 1
@@ -71,9 +78,11 @@ plot_roc_list <- function(l, main = " "){
 #' @import foreach
 #' @export
 setGeneric("eval_seurat",
-  function(object, genes.eval, dir, parallel = TRUE) standardGeneric("eval_seurat"))
+  function(object, genes.eval, dir, parallel = TRUE,
+           scheme = c("lasso", "plsr")) standardGeneric("eval_seurat"))
 setMethod("eval_seurat", "seurat",
-  function(object, genes.eval, dir, parallel = TRUE) {
+  function(object, genes.eval, dir, parallel = TRUE,
+           scheme = c("lasso", "plsr")) {
     genes.roc.obj <- list()
     genes.eval.default <- c("ADMP", "OSR1", "CDX4", "SOX3", "CHD", "SZL")
     if (missingArg(genes.eval)){
@@ -82,14 +91,16 @@ setMethod("eval_seurat", "seurat",
     }
     if (missingArg(dir)){
       dir <- getwd()
+    } else {
+      if (!dir.exists(dir)) dir.create(dir)
     }
     if (!parallel) {
       genes.roc.obj <- lapply(genes.eval, function(x)
-                              eval_seurat_innter(object, x))
+                              eval_seurat_innter(object, x, scheme = scheme))
     } else {
       registerDoMC(2)
       genes.roc.obj <- foreach(x = genes.eval) %dopar% {
-                        eval_seurat_innter(object, x)}
+                        eval_seurat_innter(object, x, scheme = scheme)}
     }
     names(genes.roc.obj) <- genes.eval
     genes.auc.val <- sapply(genes.roc.obj, function(o) o$auc)

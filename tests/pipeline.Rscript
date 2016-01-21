@@ -6,7 +6,12 @@ source('R/impute_expr.R')
 source('R/map_cell_location.R')
 source('R/utility.R')
 
-source('tests/depends.Rscript')
+library(pROC)
+library(RColorBrewer)
+library(vioplot)
+library(doMC)
+library(foreach)
+source('tests/depends.R')
 
 load('/Users/yunyan/Yun_Codes/Projects/seurat_dev/output_part2.Robj')
 
@@ -48,10 +53,10 @@ plsr.fit <- fill_imputed_expr(zf1, genes.use = lasso.genes.use,
                         scheme = "plsr",
                         do.print = TRUE)
 zf1 <- refined_mapping(zf1, genes.use)
-
-save(zf1, file = 'tests/fig_log/zf_plsr.Rdata')
+zf_plsr <- zf1
+save(zf_plsr, file = 'tests/plsr_imputation/zf_plsr.Rdata')
 ## Finish running ##
 
-roc.list.plsr <- eval_seurat(zf1, insitu.genes, dir = 'tests/plsr_imputation', parallel = T, scheme = "plsr")
+roc.list.plsr <- eval_seurat(zf_plsr, insitu.genes, dir = 'tests/plsr_imputation', parallel = T, scheme = "plsr")
 save(roc.list.plsr, file = 'tests/plsr_imputation/roc.list.plsr.Rdata')
 

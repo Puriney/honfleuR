@@ -7,7 +7,7 @@
 #'
 #' @param x data.frame of predictors(columns): observed gene expression.
 #' @param y Vector of response, observed expression of given landmarked gene.
-#' @param y.name Chractor. Name of given landmarked gene. 
+#' @param y.name Chractor. Name of given landmarked gene.
 #' @param do.print Logic. Whether print gene name to screen.
 #' @param validation Charactor. Scheme for validation. Default: CV.
 #' @import pls
@@ -87,11 +87,11 @@ setMethod("fill_imputed_expr", "seurat",
                              lasso_preds_expr(x, y, s.use = s.use, y.name = g,
                                               do.print, gram)
                            } else if (scheme == "plsr"){
-                             plsr_preds_expr(t(x), y, y.name =g, do.print)
+                             plsr_preds_expr(x, y, y.name =g, do.print)
                            } else {}
                          })
     fitted.expr <- as.data.frame(t(fitted.expr))
-    print(fitted.expr)
+    # print(fitted.expr)
 
     genes.old <- intersect(genes.fit, rownames(object@imputed))
     genes.new <- setdiff(genes.fit, rownames(object@imputed))
