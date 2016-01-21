@@ -20,3 +20,8 @@ paining "Evening, Honfleur" displayed at
 impression which is particularly special thanks to the wooden frame. As this
 package is derivative of original `seurat` package, `honfleuR` sounds good name
 just like how the painting was drawn by Georges Seurat back in 1886.
+
+## News
+
+- Import PLSR-based (partial linear squared regression) imputation strategy
+- Finish polishing and accelerating the main stream of inferring cell origins
