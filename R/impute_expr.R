@@ -5,7 +5,7 @@
 
 #' PLSR scheme to perform imputation
 #'
-#' @param x data.frame of predictors(rows): observed gene expression.
+#' @param x data.frame of predictors(columns): observed gene expression.
 #' @param y Vector of response, observed expression of given landmarked gene.
 #' @param y.name Chractor. Name of given landmarked gene. 
 #' @param do.print Logic. Whether print gene name to screen.
@@ -13,13 +13,17 @@
 #' @import pls
 #' @export
 plsr_preds_expr <- function(x, y, y.name, do.print = FALSE, validation = "CV"){
-  data <- as.data.frame(t(rbind(x, y)))
-  x <- as.data.frame(t(x))
+  if (class(x) != "data.frame") x <- as.data.frame(x)
+  y <- as.numeric(y)
+  data <- cbind(x, y)
+  colnames(data)[ncol(data)] <- y.name
   f <- as.formula(paste0(y.name, " ~ ."))
   plsr.modal <- plsr(formula = f, data = data, validation = validation)
   plsr.rmsep <- RMSEP(plsr.modal, estimate = validation)
-  k <- which.min(plsr.rmsep$val)
-  plrs.fits <- predict(plsr.modal, x, ncomp = k)
+  k <- which.min(plsr.rmsep$val) - 1
+  k <- ifelse(k == 0, 1, k) ## excluding intercept item
+  plrs.fits <- predict(plsr.modal, x, ncomp = k) ## array: Cells x 1 x 1
+  plrs.fits <- plrs.fits[, 1, 1]
   if (do.print) print(y.name)
   return(plrs.fits)
 }
@@ -36,6 +40,7 @@ plsr_preds_expr <- function(x, y, y.name, do.print = FALSE, validation = "CV"){
 #' @export
 lasso_preds_expr <- function(x, y, s.use = 20, y.name = NULL,
                             do.print = FALSE, use.gram = TRUE) {
+  if (class(x) != "matrix") x <- as.matrix(x)
   lasso.modal <- lars(x, as.numeric(y), type = "lasso", max.steps = s.use * 2,
                       use.Gram = use.gram)
   #lasso.fits = predict.lars(lasso.modal,x,type = "fit",s = min(s.use,max(lasso.modal$df)))$fit
@@ -86,6 +91,7 @@ setMethod("fill_imputed_expr", "seurat",
                            } else {}
                          })
     fitted.expr <- as.data.frame(t(fitted.expr))
+    print(fitted.expr)
 
     genes.old <- intersect(genes.fit, rownames(object@imputed))
     genes.new <- setdiff(genes.fit, rownames(object@imputed))
@@ -95,5 +101,6 @@ setMethod("fill_imputed_expr", "seurat",
 
     object@imputed <- rbind(object@imputed, fitted.expr[genes.new, ])
     return(object)
+    # return(fitted.expr)
   }
 )
