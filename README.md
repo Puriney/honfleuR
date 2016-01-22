@@ -15,9 +15,9 @@ purposes:
 ## Why `honfleuR`
 
 `seurat` is the last name of the great impressionist painter Georges Seurat. The
-paining "Evening, Honfleur" displayed at
+oil painting "Evening, Honfleur" displayed at
 [MoMA](http://www.moma.org/collection/works/79333?locale=en) left me great
-impression which is particularly special thanks to the wooden frame. As this
+impression which is particularly special thanks to its wooden frame. As this
 package is derivative of original `seurat` package, `honfleuR` sounds good name
 just like how the painting was drawn by Georges Seurat back in 1886.
 
