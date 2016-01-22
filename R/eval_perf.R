@@ -63,6 +63,7 @@ plot_roc_list <- function(l, main = " "){
   legend("bottomright", legend = legend.labs, col = mycolor[1:i], lwd = 2)
   0
 }
+
 #' @title Evaluate Seurat package performance
 #'
 #' @description Compare the inferred and observed in-situ patterns of landmark
@@ -70,6 +71,7 @@ plot_roc_list <- function(l, main = " "){
 #' perforamce' for details.
 #' @param object The seurat object.
 #' @param genes.eval The landmark genes to be used to evaluted performance.
+#' @param dir Directory to save the ROC curve plot and violin plot.
 #' @param parallel If "TRUE", \link{foreach} is used to run parallel.
 #' @import pROC
 #' @import RColorBrewer
@@ -135,45 +137,45 @@ setMethod("eval_seurat", "seurat",
 )
 
 
-#Internal, not documented for now
-setGeneric("calc.insitu", function(object,gene,do.plot=FALSE,do.write=FALSE,write.dir="~/window/insitu/",col.use=bwCols,do.norm=FALSE,cells.use=NULL,do.return=FALSE,probs.min=0,do.log=FALSE, use.imputed=FALSE, bleach.use=0) standardGeneric("calc.insitu"))
-setMethod("calc.insitu", "seurat",
-          function(object,gene,do.plot=FALSE,do.write=FALSE,write.dir="~/window/insitu/",col.use=bwCols,do.norm=FALSE,cells.use=NULL,do.return=FALSE,probs.min=0,do.log=FALSE,use.imputed=FALSE,bleach.use=0) {
-            cells.use=set.ifnull(cells.use,colnames(object@final.prob))
-            probs.use=object@final.prob
-            data.use=exp(object@data)-1
-            if (use.imputed) data.use=exp(object@imputed)-1
-            cells.use=cells.use[cells.use%in%colnames(probs.use)]; cells.use=cells.use[cells.use%in%colnames(data.use)]
-            #insilico.stain=matrix(unlist(lapply(1:64,function(x) sum(probs.use[x,]*data.use[gene,]))),nrow=8,ncol=8)
-            insilico.vector=unlist(lapply(1:64,function(x) sum(as.numeric(probs.use[x,cells.use])*as.numeric(data.use[gene,cells.use]))))
-            probs.total=apply(probs.use,1,sum)
-            probs.total[probs.total<probs.min]=probs.min
-            insilico.stain=(matrix(insilico.vector/probs.total,nrow=8,ncol=8))
-            if (do.log) insilico.stain=log(insilico.stain+1)
-            if (bleach.use > 0) {
-              insilico.stain=insilico.stain-bleach.use
-              insilico.stain=minmax(insilico.stain,min=0,max=1e6)
-            }
-            if (do.norm) insilico.stain=(insilico.stain-min(insilico.stain))/(max(insilico.stain)-min(insilico.stain))
-            title.use=gene
-            if (gene %in% colnames(object@insitu.matrix)) {
-              pred.use=prediction(insilico.vector/probs.total,object@insitu.matrix[,gene],0:1)
-              perf.use=performance(pred.use,"auc")
-              auc.use=round(perf.use@y.values[[1]],3)
-              title.use=paste(gene,sep=" ")
-              cat(gene, " ", auc.use, "\n")
-            }
-            if (do.write) {
-              write.table(insilico.stain,paste(write.dir,gene,".txt",sep=""),quote=FALSE,row.names=FALSE,col.names=FALSE)
-            }
-            if (do.plot) {
-              aheatmap(insilico.stain,Rowv=NA,Colv=NA,col=col.use, main=title.use)
-            }
-            if (do.return) {
-              return(as.vector(insilico.stain))
-            }
-            return(object)
-          }
-)
+# #Internal, not documented for now
+# setGeneric("calc.insitu", function(object,gene,do.plot=FALSE,do.write=FALSE,write.dir="~/window/insitu/",col.use=bwCols,do.norm=FALSE,cells.use=NULL,do.return=FALSE,probs.min=0,do.log=FALSE, use.imputed=FALSE, bleach.use=0) standardGeneric("calc.insitu"))
+# setMethod("calc.insitu", "seurat",
+          # function(object,gene,do.plot=FALSE,do.write=FALSE,write.dir="~/window/insitu/",col.use=bwCols,do.norm=FALSE,cells.use=NULL,do.return=FALSE,probs.min=0,do.log=FALSE,use.imputed=FALSE,bleach.use=0) {
+            # cells.use=set.ifnull(cells.use,colnames(object@final.prob))
+            # probs.use=object@final.prob
+            # data.use=exp(object@data)-1
+            # if (use.imputed) data.use=exp(object@imputed)-1
+            # cells.use=cells.use[cells.use%in%colnames(probs.use)]; cells.use=cells.use[cells.use%in%colnames(data.use)]
+            # #insilico.stain=matrix(unlist(lapply(1:64,function(x) sum(probs.use[x,]*data.use[gene,]))),nrow=8,ncol=8)
+            # insilico.vector=unlist(lapply(1:64,function(x) sum(as.numeric(probs.use[x,cells.use])*as.numeric(data.use[gene,cells.use]))))
+            # probs.total=apply(probs.use,1,sum)
+            # probs.total[probs.total<probs.min]=probs.min
+            # insilico.stain=(matrix(insilico.vector/probs.total,nrow=8,ncol=8))
+            # if (do.log) insilico.stain=log(insilico.stain+1)
+            # if (bleach.use > 0) {
+              # insilico.stain=insilico.stain-bleach.use
+              # insilico.stain=minmax(insilico.stain,min=0,max=1e6)
+            # }
+            # if (do.norm) insilico.stain=(insilico.stain-min(insilico.stain))/(max(insilico.stain)-min(insilico.stain))
+            # title.use=gene
+            # if (gene %in% colnames(object@insitu.matrix)) {
+              # pred.use=prediction(insilico.vector/probs.total,object@insitu.matrix[,gene],0:1)
+              # perf.use=performance(pred.use,"auc")
+              # auc.use=round(perf.use@y.values[[1]],3)
+              # title.use=paste(gene,sep=" ")
+              # cat(gene, " ", auc.use, "\n")
+            # }
+            # if (do.write) {
+              # write.table(insilico.stain,paste(write.dir,gene,".txt",sep=""),quote=FALSE,row.names=FALSE,col.names=FALSE)
+            # }
+            # if (do.plot) {
+              # aheatmap(insilico.stain,Rowv=NA,Colv=NA,col=col.use, main=title.use)
+            # }
+            # if (do.return) {
+              # return(as.vector(insilico.stain))
+            # }
+            # return(object)
+          # }
+# )
 
 

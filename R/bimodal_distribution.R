@@ -13,14 +13,16 @@
 #' \code{start.pct}.
 #' @param num.iter Number of 'greedy k-means' iterations (default is 1)
 #' @param do.plot Logic. Plot mixture model results if TRUE.
-#' @param genes.use Genes to use in the greedy k-means step (See manuscript for
-#' details)
+#' @param genes.use Genes to use in the greedy k-means step. (Default: landmark
+#' genes. See manuscript for details)
 #' @param start.pct (Optional) Initial estimates of the percentage of cells in
 #' the 'on' state (usually estimated from the in situ map). Cannot co-exist with
-#' \code{do.k}.  When \code{start.pct} is used, it is assumed that 2 states
-#' exisits \code{do.k} to be 2.
+#' \code{do.k}.  When \code{start.pct} is used, it is assumed that only 2 states
+#' exisits and in the same time \code{do.k} is forced to be 2.
 #' @return A Seurat object, where the posterior of each cell being in the 'on'
-#' or 'off' state for each gene is stored in object@@mix.probs
+#' or 'off' state for each gene is stored in \code{object@@mix.probs}
+#' @note This is the speed-up and debugged twin of \code{fit.gene.k} of
+#' \link{seurat}.
 #' @export
 ### @importFrom mixtools normalmixEM [not used at all]
 setGeneric("fit_gene_k",

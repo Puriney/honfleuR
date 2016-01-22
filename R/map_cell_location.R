@@ -1,5 +1,8 @@
 
 # Internal, not documented for now
+
+#' @title Helper function of \code{initial_mapping}.
+#' @description Map one cell to bins.
 #' @export
 setGeneric("map_cell",
   function(object, cell.name, gene.exclude = NULL,
@@ -86,8 +89,10 @@ setMethod("map_cell", "seurat",
 #'
 #' @param object Seurat object
 #' @param cells.use Which cells to map
+#' @param gene.exclude Gene to be excluded
 #' @return Seurat object, where mapping probabilities for each bin are stored
-#' in object@@final.prob
+#' in \code{object@@final.prob}
+#' @note Speed-up twin of \code{initial.mapping}.
 #' @export
 setGeneric("initial_mapping",
   function(object, cells.use=NULL, gene.exclude = NULL)
@@ -128,6 +133,7 @@ setMethod("initial_mapping", "seurat",
 #' @importFrom dplyr summarise group_by
 #' @importFrom tidyr spread
 #' @importFrom mixtools logdmvnorm
+#' @note Speed-up twin of \code{refined.mapping}
 #' @export
 setGeneric("refined_mapping",
            function(object, genes.use, cells.num, bins = 64)
