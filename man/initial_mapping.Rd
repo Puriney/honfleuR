@@ -10,13 +10,18 @@ initial_mapping(object, cells.use = NULL, gene.exclude = NULL)
 \item{object}{Seurat object}
 
 \item{cells.use}{Which cells to map}
+
+\item{gene.exclude}{Gene to be excluded}
 }
 \value{
 Seurat object, where mapping probabilities for each bin are stored
-in object@final.prob
+in \code{object@final.prob}
 }
 \description{
 Probabilistically maps single cells based on (imputed) gene expression
 estimates, a set of mixture models, and an in situ spatial reference map.
+}
+\note{
+Speed-up twin of \code{initial.mapping}.
 }
 

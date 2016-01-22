@@ -12,6 +12,8 @@ eval_seurat(object, genes.eval, dir, parallel = TRUE, scheme = c("lasso",
 
 \item{genes.eval}{The landmark genes to be used to evaluted performance.}
 
+\item{dir}{Directory to save the ROC curve plot and violin plot.}
+
 \item{parallel}{If "TRUE", \link{foreach} is used to run parallel.}
 }
 \description{

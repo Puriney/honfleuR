@@ -29,4 +29,7 @@ and that also considers the covariance structure between genes.
 \details{
 Full details given in spatial mapping manuscript.
 }
+\note{
+Speed-up twin of \code{refined.mapping}
+}
 

@@ -52,11 +52,12 @@ lasso_preds_expr <- function(x, y, s.use = 20, y.name = NULL,
   return(lasso.fits)
 }
 
+
 #' @title Impute gene expression and fill in Seurat object.
 #'
-#' @description Impute the expression values of import genes, e.g. landmark,
-#' genes with other genes as predictors via L1-constrained linear models, i.e.
-#' lasso (default), or partial least squares regression (PLSR).
+#' Impute the expression values of import genes, e.g. landmark, genes with other
+#' genes as predictors via L1-constrained linear models, i.e.  lasso (default),
+#' or partial least squares regression (PLSR).
 #'
 #' @param object Seurat object
 #' @param genes.use A vector of genes (predictors) that can be used for
@@ -72,7 +73,7 @@ lasso_preds_expr <- function(x, y, s.use = 20, y.name = NULL,
 #' @return Returns a Seurat object where the imputed values have been added to
 #' \code{object@@data}. If \code{genes.fit} have already existed in object,
 #' their values are imputed again via the selected \code{scheme} and refilled;
-#' otherwise they are imputed and added to \code{object@data}.
+#' otherwise they are imputed and added to \code{object@@data}.
 #' @note This extends the function of original \code{addImputedScore}.
 #' @import lars
 #' @import pls
@@ -112,3 +113,5 @@ setMethod("fill_imputed_expr", "seurat",
     return(object)
   }
 )
+
+

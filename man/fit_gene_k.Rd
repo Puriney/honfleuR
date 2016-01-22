@@ -20,17 +20,17 @@ fit_gene_k(object, gene, do.k = 2, num.iter = 1, do.plot = FALSE,
 
 \item{do.plot}{Logic. Plot mixture model results if TRUE.}
 
-\item{genes.use}{Genes to use in the greedy k-means step (See manuscript for
-details)}
+\item{genes.use}{Genes to use in the greedy k-means step. (Default: landmark
+genes. See manuscript for details)}
 
 \item{start.pct}{(Optional) Initial estimates of the percentage of cells in
 the 'on' state (usually estimated from the in situ map). Cannot co-exist with
-\code{do.k}.  When \code{start.pct} is used, it is assumed that 2 states
-exisits \code{do.k} to be 2.}
+\code{do.k}.  When \code{start.pct} is used, it is assumed that only 2 states
+exisits and in the same time \code{do.k} is forced to be 2.}
 }
 \value{
 A Seurat object, where the posterior of each cell being in the 'on'
-or 'off' state for each gene is stored in object@mix.probs
+or 'off' state for each gene is stored in \code{object@mix.probs}
 }
 \description{
 Models the imputed gene expression values as a mixture of
@@ -38,5 +38,9 @@ gaussian distributions. For a two-state model, estimates the probability that
 a given cell is in the 'on' or 'off' state for any gene. Followed by a greedy
 k-means step where cells are allowed to flip states based on the overall
 structure of the data (see Manuscript for details)
+}
+\note{
+This is the speed-up and debugged twin of \code{fit.gene.k} of
+\link{seurat}.
 }
 

@@ -2,7 +2,11 @@
 % Please edit documentation in R/impute_expr.R
 \name{fill_imputed_expr}
 \alias{fill_imputed_expr}
-\title{Calculate imputed expression values}
+\title{Impute gene expression and fill in Seurat object.
+
+Impute the expression values of import genes, e.g. landmark, genes with other
+genes as predictors via L1-constrained linear models, i.e.  lasso (default),
+or partial least squares regression (PLSR).}
 \usage{
 fill_imputed_expr(object, genes.use = NULL, genes.fit = NULL,
   scheme = "lasso", s.use = 20, do.print = FALSE, gram = TRUE)
@@ -11,26 +15,35 @@ fill_imputed_expr(object, genes.use = NULL, genes.fit = NULL,
 \item{object}{Seurat object}
 
 \item{genes.use}{A vector of genes (predictors) that can be used for
-building the LASSO models.}
+building the imputation models.}
 
-\item{genes.fit}{A vector of genes to impute values for}
+\item{genes.fit}{A vector of response genes to be imputed.}
 
 \item{scheme}{Imputation strategies: "lasso", "plsr".}
 
 \item{s.use}{Maximum number of steps taken by the algorithm (lower values
-indicate a greater degree of smoothing)}
+indicate a greater degree of smoothing). Only used for "lasso" scheme.}
 
 \item{do.print}{Print progress (output the name of each gene after it has
 been imputed).}
 
-\item{gram}{The use.gram argument passed to lars}
+\item{gram}{The use.gram argument passed to \link{lars} of lars package. See
+\link{lars} for parameter details. Only used for "lasso" scheme.}
 }
 \value{
 Returns a Seurat object where the imputed values have been added to
-object@data
+\code{object@data}. If \code{genes.fit} have already existed in object,
+their values are imputed again via the selected \code{scheme} and refilled;
+otherwise they are imputed and added to \code{object@data}.
 }
 \description{
-Uses L1-constrained linear models (LASSO) to impute single cell
-gene expression values.
+Impute gene expression and fill in Seurat object.
+
+Impute the expression values of import genes, e.g. landmark, genes with other
+genes as predictors via L1-constrained linear models, i.e.  lasso (default),
+or partial least squares regression (PLSR).
+}
+\note{
+This extends the function of original \code{addImputedScore}.
 }
 
