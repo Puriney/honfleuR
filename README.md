@@ -23,5 +23,5 @@ just like how the painting was drawn by Georges Seurat back in 1886.
 
 ## News
 
-- Import PLSR-based (partial linear squared regression) imputation strategy
+- Import PLSR-based (partial least squares regression) imputation strategy
 - Finish polishing and accelerating the main stream of inferring cell origins
