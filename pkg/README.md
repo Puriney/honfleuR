@@ -2,17 +2,25 @@
 
 ## Goal
 
-Refined `seurat` package (https://github.com/satijalab/seurat) with following
-purposes:
+Extension of `seurat` package (https://github.com/satijalab/seurat) with
+following purposes:
 
-- improves codes readability by following [Hadley
-  style](http://adv-r.had.co.nz/Style.html).
-- improves running speed by using vectorization as much as possible.
-- incorporate new schemes/algorithms to improve performance.
+- incorporate new schemes/algorithms to improve performance and expand
+  capability.
+- greatly improves running speed.
+- improves codes readability by following popular [Hadley
+  style](http://adv-r.had.co.nz/Style.html) to be more friendly for developers.
+- workspace before I submit pull request, and hopefully it will be merged into
+  `seurat` package.
 
-**Hopefully it will be merged into `seurat` package**.
+## Install
 
-## Why `honfleuR`
+```r
+require(devtools)
+install_github("Puriney/honfleuR", subdir = "pkg")
+```
+
+## How does `honfleuR` come?
 
 `seurat` is the last name of the great impressionist painter Georges Seurat. The
 oil painting "Evening, Honfleur" displayed at
@@ -21,7 +29,9 @@ impression which is particularly special thanks to its wooden frame. As this
 package is derivative of original `seurat` package, `honfleuR` sounds good name
 just like how the painting was drawn by Georges Seurat back in 1886.
 
-## News
+## Updates
 
-- Import PLSR-based (partial least squares regression) imputation strategy
-- Finish polishing and accelerating the main stream of inferring cell origins
+- Import PLSR-based (partial least squares regression) imputation strategy. See
+  wiki [here](https://github.com/Puriney/honfleuR/wiki/Imputation-Schemes).
+- Finish polishing and accelerating the main stream of inferring cell origins.
+  See wiki [here](https://github.com/Puriney/honfleuR/wiki/Performance-enhancements-for-bimodal-distributions-estimation) for bimodal estimation and [here](https://github.com/Puriney/honfleuR/wiki/Performance-enhancements-for-mapping-cells-location-part) for mapping cells.

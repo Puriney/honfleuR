@@ -6,7 +6,7 @@ empP <- function(x, nullval) {
 #' Calculate p values for PCs given the rotated intact matrix and rotated
 #' permuted matrix.
 #'
-#' @param x Subtset or entire \code{object@pca.x}
+#' @param x Subtset or entire \code{object@@pca.x}
 #' @param xp \code{fake.pcVals}
 #' @return p-value matrix with genes as rows and PCs on columns
 calc_PCpval <- function(x, xp){

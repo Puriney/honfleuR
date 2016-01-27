@@ -2,11 +2,7 @@
 % Please edit documentation in R/impute_expr.R
 \name{fill_imputed_expr}
 \alias{fill_imputed_expr}
-\title{Impute gene expression and fill in Seurat object.
-
-Impute the expression values of import genes, e.g. landmark, genes with other
-genes as predictors via L1-constrained linear models, i.e.  lasso (default),
-or partial least squares regression (PLSR).}
+\title{Impute gene expression and fill in Seurat object.}
 \usage{
 fill_imputed_expr(object, genes.use = NULL, genes.fit = NULL,
   scheme = "lasso", s.use = 20, do.print = FALSE, gram = TRUE)
@@ -37,11 +33,9 @@ their values are imputed again via the selected \code{scheme} and refilled;
 otherwise they are imputed and added to \code{object@data}.
 }
 \description{
-Impute gene expression and fill in Seurat object.
-
-Impute the expression values of import genes, e.g. landmark, genes with other
-genes as predictors via L1-constrained linear models, i.e.  lasso (default),
-or partial least squares regression (PLSR).
+Impute the expression values of import genes, e.g. landmark,
+genes with other genes as predictors via L1-constrained linear models, i.e.
+lasso (default), or partial least squares regression (PLSR).
 }
 \note{
 This extends the function of original \code{addImputedScore}.
