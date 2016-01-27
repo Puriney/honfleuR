@@ -95,3 +95,20 @@ calc_cell_centroid <- function(probs, bins = 64) {
   y <- sum(yidx * probs)
   return(c(x, y))
 }
+
+
+partition <- function(x, pSize){
+  n <- length(x)
+  pNum <- n %/% pSize
+  g <- rep(1:pNum, each = pSize)
+  out <- n %% pSize
+  if (out != 0){
+    if(out < pSize / 2){
+      g <- c(g, rep(pNum, out))
+    } else{
+      g <- c(g, rep(pNum + 1, out))
+    }
+  }
+  l <- split(x = x, f = g)
+  return(l)
+}

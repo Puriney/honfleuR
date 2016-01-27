@@ -53,6 +53,56 @@ lasso_preds_expr <- function(x, y, s.use = 20, y.name = NULL,
 }
 
 
+#' @title Tilling LASSO linear modal to impute expression of landmark genes
+#'
+#' @param x Matrix of predictors(columns), observed genes expression.
+#' @param y Vector of response, observed expression of given landmarked gene.
+#' @param s.use Numeric. See \link{predict.lars}'s parameter \code{s}.
+#' @param y.name Chractor. Name of the given landmarked gene.
+#' @param do.print Logic. Whether print \code{y.name} on screen.
+#' @param use.gram Logic. See \link{lars}'s parameter \code{use.Gram}
+#' @param w Window size to set the training data size relative to input
+#' \code{x}. Default: 0.8.
+#' @return Returns the imputed landmarked gene expession via LASSO modal.
+#' @import lars
+#' @export
+tilling_lasso_preds_expr <- function(x, y, s.use = 20, y.name = NULL,
+                             do.print = FALSE, use.gram = TRUE, w = 0.8) {
+  if(nrow(x) < 10) stop("Size of sequenced cells is less than 10")
+  x <- as.matrix(x)
+  y <- as.numeric(y)
+
+  set.seed(1234)
+  n <- nrow(x)
+  s <- ceiling(n * (1 - w))
+  idx <- 1:n
+  ridx <- sample(idx, n, replace = FALSE)
+#   if (all.equal(n %% s, 0)){
+#     ridx.p <- partition(ridx, sep = rep(s, n/s))
+#   } else {
+#     ridx.p <- partition(ridx, sep = c(rep(s, n %/% s), n %% s))
+#   }
+  ridx.p <- partition(ridx, s)
+  yhat <- rep(NA, nrow(x))
+  parts <- seq_len(length(ridx.p))
+  yhat[ridx] <- unlist(lapply(parts,
+                   function(p) {
+                     idx.un <- ridx.p[[p]]
+                     idx.tr <- setdiff(ridx, idx.un)
+                     x.tr <- x[idx.tr, ]
+                     y.tr <- y[idx.tr]
+                     model.p <- lars(x.tr, y.tr, type = "lasso",
+                                     max.steps = s.use * 2, use.Gram = use.gram)
+                     x.un <- x[idx.un, ]
+                     o <- predict.lars(model.p, x.un, type = "fit", s = s.use)$fit
+                     as.numeric(o)
+
+                   }))
+  if(do.print) print(y.name)
+  return(yhat)
+}
+
+
 #' @title Impute gene expression and fill in Seurat object.
 #'
 #' @description Impute the expression values of import genes, e.g. landmark,
