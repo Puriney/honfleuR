@@ -55,9 +55,9 @@ lasso_preds_expr <- function(x, y, s.use = 20, y.name = NULL,
 
 #' @title Impute gene expression and fill in Seurat object.
 #'
-#' Impute the expression values of import genes, e.g. landmark, genes with other
-#' genes as predictors via L1-constrained linear models, i.e.  lasso (default),
-#' or partial least squares regression (PLSR).
+#' @description Impute the expression values of import genes, e.g. landmark,
+#' genes with other genes as predictors via L1-constrained linear models, i.e.
+#' lasso (default), or partial least squares regression (PLSR).
 #'
 #' @param object Seurat object
 #' @param genes.use A vector of genes (predictors) that can be used for
