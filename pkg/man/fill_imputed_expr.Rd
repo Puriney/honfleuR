@@ -15,7 +15,7 @@ building the imputation models.}
 
 \item{genes.fit}{A vector of response genes to be imputed.}
 
-\item{scheme}{Imputation strategies: "lasso", "plsr".}
+\item{scheme}{Imputation strategies: "lasso", "plsr", "tlasso" (tilling lasso).}
 
 \item{s.use}{Maximum number of steps taken by the algorithm (lower values
 indicate a greater degree of smoothing). Only used for "lasso" scheme.}

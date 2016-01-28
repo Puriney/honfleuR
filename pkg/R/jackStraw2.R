@@ -85,7 +85,8 @@ setMethod("jackStraw2", "seurat",
   }
 )
 
-## almost identical with original jackRandom
+##-- almost identical with original jackRandom
+
 jackRandom2 <- function(scaled.data, prop.use = 0.01, r1.use = 1, r2.use = 5,
                         seed.use) {
   if(!missingArg(seed.use)){
@@ -99,7 +100,8 @@ jackRandom2 <- function(scaled.data, prop.use = 0.01, r1.use = 1, r2.use = 5,
   return(fake.x[rand.genes, r1.use:r2.use])
 }
 
-## almost identical as original shuffleMatRow
+##-- almost identical as original shuffleMatRow
+
 shuffleMatRow2 <- function(x) {
   x2 <- t(x)
   ind <- order(c(col(x2)), runif(length(x2)))
