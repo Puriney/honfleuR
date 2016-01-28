@@ -5,6 +5,7 @@ source('pkg/R/eval_perf.R')
 source('pkg/R/impute_expr.R')
 source('pkg/R/map_cell_location.R')
 source('pkg/R/utility.R')
+# library(honfleuR)
 
 library(pROC)
 library(RColorBrewer)
@@ -18,7 +19,7 @@ load('/Users/yunyan/Yun_Codes/Projects/seurat_dev/output_part2.Robj')
 #
 # Perform imputation
 #
-require(pls)
+require(lars)
 genes.sig <- pca.sig.genes(zf, pcs.use = c(1,2,3), pval.cut = 1e-2,
                            use.full = TRUE)
 insitu.genes <- colnames(zf@insitu.matrix)
@@ -57,6 +58,6 @@ zf_tlasso <- zf1
 save(zf_tlasso, file = 'tests/tlasso_imputation/zf_tlasso.Rdata')
 ## Finish running ##
 
-roc.list.tlasso <- eval_seurat(zf_tlasso, insitu.genes, dir = 'tests/tlasso_imputation', parallel = T, scheme = "tlasso")
+roc.list.tlasso <- eval_seurat(zf_tlasso, insitu.genes, dir = 'tests/tlasso_imputation', parallel = F, scheme = "tlasso")
 save(roc.list.tlasso, file = 'tests/tlasso_imputation/roc.list.tlasso.Rdata')
 
