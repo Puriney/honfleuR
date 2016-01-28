@@ -35,7 +35,7 @@ otherwise they are imputed and added to \code{object@data}.
 \description{
 Impute the expression values of import genes, e.g. landmark,
 genes with other genes as predictors via L1-constrained linear models, i.e.
-lasso (default), or partial least squares regression (PLSR).
+lasso (default), or partial least squares regression (plsr), or tilling LASSO #' (tlasso).
 }
 \note{
 This extends the function of original \code{addImputedScore}.

@@ -15,6 +15,8 @@ eval_seurat(object, genes.eval, dir, parallel = TRUE, scheme = c("lasso",
 \item{dir}{Directory to save the ROC curve plot and violin plot.}
 
 \item{parallel}{If "TRUE", \link{foreach} is used to run parallel.}
+
+\item{scheme}{Imputation strategies.}
 }
 \description{
 Compare the inferred and observed in-situ patterns of landmark
