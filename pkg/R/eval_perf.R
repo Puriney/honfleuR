@@ -21,6 +21,11 @@ eval_seurat_innter <- function(object, g, scheme){
                                 genes.fit = new.imputed,
                                 scheme = "plsr",
                                 do.print = FALSE)
+  } else if (scheme == "tlasso"){
+    object <- fill_imputed_expr(object, genes.use = predictor.use,
+                                genes.fit = new.imputed,
+                                scheme = "tlasso",
+                                do.print = FALSE, s.use = 40, gram = FALSE)
   } else {}
   # genes.use     <- setdiff(genes.use, g)
   object <- refined_mapping(object, genes.use)
@@ -73,6 +78,7 @@ plot_roc_list <- function(l, main = " "){
 #' @param genes.eval The landmark genes to be used to evaluted performance.
 #' @param dir Directory to save the ROC curve plot and violin plot.
 #' @param parallel If "TRUE", \link{foreach} is used to run parallel.
+#' @param scheme Imputation strategies.
 #' @import pROC
 #' @import RColorBrewer
 #' @import vioplot

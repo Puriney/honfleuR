@@ -113,7 +113,7 @@ tilling_lasso_preds_expr <- function(x, y, s.use = 20, y.name = NULL,
 #'
 #' @description Impute the expression values of import genes, e.g. landmark,
 #' genes with other genes as predictors via L1-constrained linear models, i.e.
-#' lasso (default), or partial least squares regression (PLSR).
+#' lasso (default), or partial least squares regression (plsr), or tilling LASSO #' (tlasso).
 #'
 #' @param object Seurat object
 #' @param genes.use A vector of genes (predictors) that can be used for
