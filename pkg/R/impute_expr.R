@@ -67,7 +67,7 @@ lasso_preds_expr <- function(x, y, s.use = 20, y.name = NULL,
 #' @import lars
 #' @export
 tilling_lasso_preds_expr <- function(x, y, s.use = 20, y.name = NULL,
-                             do.print = FALSE, use.gram = TRUE, w = 0.8) {
+                             do.print = FALSE, use.gram = FALSE, w = 0.8) {
   if(nrow(x) < 10) stop("Size of sequenced cells is less than 10")
   x <- as.matrix(x)
   y <- as.numeric(y)
@@ -77,11 +77,7 @@ tilling_lasso_preds_expr <- function(x, y, s.use = 20, y.name = NULL,
   s <- ceiling(n * (1 - w))
   idx <- 1:n
   ridx <- sample(idx, n, replace = FALSE)
-#   if (all.equal(n %% s, 0)){
-#     ridx.p <- partition(ridx, sep = rep(s, n/s))
-#   } else {
-#     ridx.p <- partition(ridx, sep = c(rep(s, n %/% s), n %% s))
-#   }
+
   ridx.p <- partition(ridx, s)
   yhat <- rep(NA, nrow(x))
   parts <- seq_len(length(ridx.p))
@@ -94,11 +90,10 @@ tilling_lasso_preds_expr <- function(x, y, s.use = 20, y.name = NULL,
                      model.p <- lars(x.tr, y.tr, type = "lasso",
                                      max.steps = s.use * 2, use.Gram = use.gram)
                      x.un <- x[idx.un, ]
-                     o <- predict.lars(model.p, x.un, type = "fit", s = s.use)$fit
-                     as.numeric(o)
-
+                     predict.lars(model.p, x.un, type = "fit", s = s.use)$fit
                    }))
   if(do.print) print(y.name)
+  names(yhat) <- rownames(x)
   return(yhat)
 }
 
@@ -113,7 +108,7 @@ tilling_lasso_preds_expr <- function(x, y, s.use = 20, y.name = NULL,
 #' @param genes.use A vector of genes (predictors) that can be used for
 #' building the imputation models.
 #' @param genes.fit A vector of response genes to be imputed.
-#' @param scheme Imputation strategies: "lasso", "plsr".
+#' @param scheme Imputation strategies: "lasso", "plsr", "tlasso" (tilling lasso).
 #' @param s.use Maximum number of steps taken by the algorithm (lower values
 #' indicate a greater degree of smoothing). Only used for "lasso" scheme.
 #' @param do.print Print progress (output the name of each gene after it has
@@ -148,7 +143,11 @@ setMethod("fill_imputed_expr", "seurat",
                                               do.print, gram)
                            } else if (scheme == "plsr"){
                              plsr_preds_expr(x, y, y.name =g, do.print)
-                           } else {}
+                           } else if (scheme == "tlasso"){
+                             tilling_lasso_preds_expr(x, y, s.use = s.use,
+                                                      y.name = g, do.print,
+                                                      gram)
+                           } else { stop('xx Select imputation strategy.') }
                          })
     fitted.expr <- as.data.frame(t(fitted.expr))
     # print(fitted.expr)
