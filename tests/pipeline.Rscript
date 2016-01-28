@@ -1,10 +1,10 @@
 #!/usr/bin/env Rscript
 
-source('R/bimodal_distribution.R')
-source('R/eval_perf.R')
-source('R/impute_expr.R')
-source('R/map_cell_location.R')
-source('R/utility.R')
+source('pkg/R/bimodal_distribution.R')
+source('pkg/R/eval_perf.R')
+source('pkg/R/impute_expr.R')
+source('pkg/R/map_cell_location.R')
+source('pkg/R/utility.R')
 
 library(pROC)
 library(RColorBrewer)
@@ -48,7 +48,7 @@ new.imputed=genes.use[!genes.use%in%rownames(zf1@imputed)]
 lasso.genes.use=unique(c(zf1@var.genes,pca.sig.genes(zf1,pcs.use = c(1,2,3), pval.cut = 1e-2, use.full = TRUE)))
 
 # zf1
-plsr.fit <- fill_imputed_expr(zf1, genes.use = lasso.genes.use,
+zf1 <- fill_imputed_expr(zf1, genes.use = lasso.genes.use,
                         genes.fit = new.imputed,
                         scheme = "plsr",
                         do.print = TRUE)
