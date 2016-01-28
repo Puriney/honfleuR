@@ -9,7 +9,7 @@ library(RColorBrewer)
 library(vioplot)
 
 mytime <- format(Sys.time(), "%Y-%m-%d %X %Z")
-source('R/utility.R')
+source('pkg/R/utility.R')
 
 test_res_dir <- 'tests/fig_log'
 if (!dir.exists(test_res_dir)){
