@@ -1,0 +1,62 @@
+#!/usr/bin/env Rscript
+
+source('pkg/R/bimodal_distribution.R')
+source('pkg/R/eval_perf.R')
+source('pkg/R/impute_expr.R')
+source('pkg/R/map_cell_location.R')
+source('pkg/R/utility.R')
+
+library(pROC)
+library(RColorBrewer)
+library(vioplot)
+library(doMC)
+library(foreach)
+source('tests/depends.R')
+
+load('/Users/yunyan/Yun_Codes/Projects/seurat_dev/output_part2.Robj')
+
+#
+# Perform imputation
+#
+require(pls)
+genes.sig <- pca.sig.genes(zf, pcs.use = c(1,2,3), pval.cut = 1e-2,
+                           use.full = TRUE)
+insitu.genes <- colnames(zf@insitu.matrix)
+lasso.genes.use <- unique(c(genes.sig, zf@var.genes))
+zf1 <- fill_imputed_expr(zf, genes.use = lasso.genes.use,
+                        genes.fit = insitu.genes,
+                        scheme = "tlasso", do.print=FALSE)
+# save(zf1, file = '/Users/yunyan/Yun_Codes/Projects/seurat_dev/output_part2_tlasso.Robj')
+#
+# Fitting model
+#
+for(i in rev(insitu.genes)) {
+  zf1 <- fit_gene_k(zf1, i, do.plot = FALSE, do.k = 2,
+                   start.pct = mean(zf1@insitu.matrix[,i]),
+                   num.iter = 1)
+}
+#
+# Initial mapping
+#
+zf1 <- initial_mapping(zf1)
+#
+# Refined mapping
+#
+num.pc=3; num.genes=6
+genes.use=pcTopGenes(zf1,pc.use = 1:num.pc,num.genes = num.genes,use.full = TRUE,do.balanced = TRUE)
+new.imputed=genes.use[!genes.use%in%rownames(zf1@imputed)]
+lasso.genes.use=unique(c(zf1@var.genes,pca.sig.genes(zf1,pcs.use = c(1,2,3), pval.cut = 1e-2, use.full = TRUE)))
+
+# zf1
+zf1 <- fill_imputed_expr(zf1, genes.use = lasso.genes.use,
+                        genes.fit = new.imputed,
+                        scheme = "tlasso",
+                        do.print = TRUE)
+zf1 <- refined_mapping(zf1, genes.use)
+zf_tlasso <- zf1
+save(zf_tlasso, file = 'tests/tlasso_imputation/zf_tlasso.Rdata')
+## Finish running ##
+
+roc.list.tlasso <- eval_seurat(zf_tlasso, insitu.genes, dir = 'tests/tlasso_imputation', parallel = T, scheme = "tlasso")
+save(roc.list.tlasso, file = 'tests/tlasso_imputation/roc.list.tlasso.Rdata')
+
