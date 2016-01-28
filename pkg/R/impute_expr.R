@@ -63,38 +63,49 @@ lasso_preds_expr <- function(x, y, s.use = 20, y.name = NULL,
 #' @param use.gram Logic. See \link{lars}'s parameter \code{use.Gram}
 #' @param w Window size to set the training data size relative to input
 #' \code{x}. Default: 0.8.
+#' @param loops Times to run tilling LASSO.
 #' @return Returns the imputed landmarked gene expession via LASSO modal.
 #' @import lars
 #' @export
 tilling_lasso_preds_expr <- function(x, y, s.use = 20, y.name = NULL,
-                             do.print = FALSE, use.gram = FALSE, w = 0.8) {
+                             do.print = FALSE, use.gram = FALSE,
+                             w = 0.8, loops = 10) {
   if(nrow(x) < 10) stop("Size of sequenced cells is less than 10")
   x <- as.matrix(x)
   y <- as.numeric(y)
-
-  set.seed(1234)
   n <- nrow(x)
   s <- ceiling(n * (1 - w))
   idx <- 1:n
-  ridx <- sample(idx, n, replace = FALSE)
 
-  ridx.p <- partition(ridx, s)
-  yhat <- rep(NA, nrow(x))
-  parts <- seq_len(length(ridx.p))
-  yhat[ridx] <- unlist(lapply(parts,
-                   function(p) {
-                     idx.un <- ridx.p[[p]]
-                     idx.tr <- setdiff(ridx, idx.un)
-                     x.tr <- x[idx.tr, ]
-                     y.tr <- y[idx.tr]
-                     model.p <- lars(x.tr, y.tr, type = "lasso",
-                                     max.steps = s.use * 2, use.Gram = use.gram)
-                     x.un <- x[idx.un, ]
-                     predict.lars(model.p, x.un, type = "fit", s = s.use)$fit
-                   }))
-  if(do.print) print(y.name)
-  names(yhat) <- rownames(x)
-  return(yhat)
+  yhatmtx <- sapply(1:loops, function(i) {
+    set.seed(i)
+    ridx <- sample(idx, n, replace = FALSE)
+    ridx.p <- partition(ridx, s)
+    yhat <- rep(NA, nrow(x))
+    parts <- seq_len(length(ridx.p))
+    yhat[ridx] <- unlist(lapply(parts,
+                     function(p) {
+                       idx.un <- ridx.p[[p]]
+                       idx.tr <- setdiff(ridx, idx.un)
+                       x.tr <- x[idx.tr, ]
+                       y.tr <- y[idx.tr]
+                       model.p <- lars(x.tr, y.tr, type = "lasso",
+                                       max.steps = s.use * 2,
+                                       use.Gram = use.gram)
+                       x.un <- x[idx.un, ]
+                       o <- predict.lars(model.p, x.un, type = "fit", s = s.use)
+                       o$fit
+                     }))
+    if(do.print) print(y.name)
+    names(yhat) <- rownames(x)
+    yhat
+  }, simplify = FALSE)
+  yhatmtx <- do.call("rbind", yhatmtx)
+  if (loops > 1){
+    return(colMeans(yhatmtx))
+  }else {
+    return(yhatmtx[1, ])
+  }
 }
 
 
