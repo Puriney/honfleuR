@@ -1,10 +1,19 @@
 Package: honfleuR
 Type: Package
-Title: Refined seurat package
-Version: 0.1
+Title: Exension of seurat package
+Version: 0.1.1
 Date: 2016-01-01
 Author: Yun Yan
 Maintainer: Yun Yan <yy1533@nyu.edu>
 Description: Extension of seurat package. Speed up processing of inferring cell origins.
 License: GPL 3.0
 LazyData: TRUE
+Imports:
+  vioplot,
+  pROC,
+  XLConnect,
+  lars,
+  pls
+Suggests:
+  doMC,
+  foreach
