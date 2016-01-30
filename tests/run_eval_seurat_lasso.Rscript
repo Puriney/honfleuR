@@ -1,0 +1,23 @@
+#!/usr/bin/env Rscript
+library(honfleuR)
+library(Seurat)
+library(pROC)
+library(RColorBrewer)
+library(vioplot)
+library(doMC)
+library(foreach)
+
+require(XLConnect)
+wbfile <- '/Users/yunyan/Yun_Codes/Projects/seurat_dev/Spatial_ReferenceMap.xlsx'
+wb <- loadWorkbook(wbfile, create = F)
+
+load('/Users/yunyan/Yun_Codes/Projects/seurat_dev/output_part2_before_imputation.Robj')
+insitu.g.eval <- toupper(getSheets(wb))
+
+outdir <- 'tests/lasso'
+roc.lasso.list <- eval_seurat(object = zf, genes.eval = insitu.g.eval,
+                              dir = outdir, parallel = F,
+                              scheme = 'lasso', insitu.path = wbfile)
+
+save(roc.lasso.list, file = 'tests/lasso/roc.lasso.list.RData')
+

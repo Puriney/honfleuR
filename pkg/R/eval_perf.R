@@ -1,8 +1,49 @@
-eval_seurat_innter <- function(object, g, scheme){
-  cat(">> Evaluating gene ", g , "\n")
-  ## intinal mapping excluding specific landmark gene
-  object <- initial_mapping(object, gene.exclude = g)
-  ## refined mapping excluding same specific landmark gene
+#' Run seurat analysis pipeline (optional: excluding specific landmark gene)
+#'
+#' @param object Object of seurat. Load the object before imputation.
+#' @param g Specific landmark gene (upper case). If not setting, all landmark genes from in
+#' situ data are used. Otherwise, \code{g} is excluded for generating spatial
+#' reference map
+#' @param scheme Imputation strategy. Default: lasso. Other options are: plsr,
+#' tlasso
+#' @param insitu Intact in situ staining data
+#' @return roc object
+#' @import XLConnect
+#' @export
+eval_seurat_innter <- function(object, g = NULL, scheme = "lasso", insitu){
+  if (is.null(g) || missingArg(g)) {
+    cat(">> Run Seurat entire analysis\n")
+  } else {
+    cat(">> Evaluating performance on gene ", g , "\n")
+  }
+  ## read-in insitu and load into object
+  full.insitu.g <- toupper(getSheets(insitu))
+  insitu.matrix <- data.frame(sapply(1:length(full.insitu.g), function(i)
+                                    as.numeric(as.matrix(insitu[i][2:9, 2:9]))))
+  colnames(insitu.matrix) <- toupper(full.insitu.g)
+  g.staining <- insitu.matrix[, g]
+  insitu.genes <- setdiff(full.insitu.g, g)
+  object@insitu.matrix <- insitu.matrix[, insitu.genes]
+
+  ## imputation
+  genes.sig <- pca.sig.genes(object, pcs.use = c(1,2,3), pval.cut = 1e-2,
+                             use.full = TRUE)
+  predictor.genes <- unique(c(genes.sig, object@var.genes))
+  object <- fill_imputed_expr(object, genes.use = predictor.genes,
+                              genes.fit = insitu.genes, scheme = scheme,
+                              do.print = FALSE, s.use = 40, gram = FALSE)
+  ## Part-2 ends here
+
+  ## Part-3 starts
+  ## bi-modal model construction
+  for (i in rev(insitu.genes)) {
+    object <- fit_gene_k(object, gene = i, num.iter = 1, do.k = 2,
+                        start.pct = mean(object@insitu.matrix[, i]),
+                        do.plot = FALSE)
+  }
+  ## intinal mapping
+  object <- initial_mapping(object)
+  ## refined mapping
   num.pc <- 3
   num.genes <- 6
   genes.use <- pcTopGenes(object, pc.use = 1:num.pc, num.genes = num.genes,
@@ -12,40 +53,41 @@ eval_seurat_innter <- function(object, g, scheme){
                             pca.sig.genes(object, pcs.use = c(1,2,3),
                                           pval.cut = 1e-2, use.full = TRUE)
                             ))
-  if (scheme == "lasso"){
-    object <- addImputedScore(object, genes.use = predictor.use,
+  object <- fill_imputed_expr(object, genes.use = predictor.use,
                               genes.fit = new.imputed,
+                              scheme = scheme,
                               do.print = FALSE, s.use = 40, gram = FALSE)
-  } else if (scheme == "plsr") {
-    object <- fill_imputed_expr(object, genes.use = predictor.use,
-                                genes.fit = new.imputed,
-                                scheme = "plsr",
-                                do.print = FALSE)
-  } else if (scheme == "tlasso"){
-    object <- fill_imputed_expr(object, genes.use = predictor.use,
-                                genes.fit = new.imputed,
-                                scheme = "tlasso",
-                                do.print = FALSE, s.use = 40, gram = FALSE)
-  } else {}
-  # genes.use     <- setdiff(genes.use, g)
   object <- refined_mapping(object, genes.use)
+  return(eval_roc_gene(object, g, g.staining))
+}
+
+
+#' Generate ROC for specific landmarkd gene
+#'
+#' @param object seurat object
+#' @param g gene name
+#' @param g.staining Value of gene in in situ staining data
+#' @return roc object
+#' @import pROC
+eval_roc_gene <- function(object, g, g.staining){
   ## generating roc object and AUC value
   probs.use <- object@final.prob
   data.use  <- exp(object@data) - 1
   bins.num  <- nrow(object@insitu.matrix)
   insilico.vector <- unlist(lapply(1:bins.num, function(b) {
-                                     prob = as.numeric(probs.use[b, ])
-                                     obsv = as.numeric(data.use[g, ])
-                                     sum(prob * obsv)
-                                    }))
+    prob = as.numeric(probs.use[b, ])
+    obsv = as.numeric(data.use[g, ])
+    sum(prob * obsv)
+  }))
   probs.total <- rowSums(probs.use)
   probs.total[probs.total < 0] <- 0
 
   pred <- insilico.vector / probs.total
-  raw  <- object@insitu.matrix[, g]
+  raw  <- g.staining
   g.roc.obj <- roc(raw, pred)
   g.roc.obj
 }
+
 
 plot_roc_list <- function(l, main = " "){
   nms <- names(l)
@@ -79,6 +121,7 @@ plot_roc_list <- function(l, main = " "){
 #' @param dir Directory to save the ROC curve plot and violin plot.
 #' @param parallel If "TRUE", \link{foreach} is used to run parallel.
 #' @param scheme Imputation strategies.
+#' @param insitu.path Path to in situ staining data.
 #' @import pROC
 #' @import RColorBrewer
 #' @import vioplot
@@ -87,10 +130,10 @@ plot_roc_list <- function(l, main = " "){
 #' @export
 setGeneric("eval_seurat",
   function(object, genes.eval, dir, parallel = TRUE,
-           scheme = c("lasso", "plsr")) standardGeneric("eval_seurat"))
+           scheme = c("lasso", "plsr"), insitu.path) standardGeneric("eval_seurat"))
 setMethod("eval_seurat", "seurat",
   function(object, genes.eval, dir, parallel = TRUE,
-           scheme = c("lasso", "plsr")) {
+           scheme = c("lasso", "plsr"), insitu.path) {
     genes.roc.obj <- list()
     genes.eval.default <- c("ADMP", "OSR1", "CDX4", "SOX3", "CHD", "SZL")
     if (missingArg(genes.eval)){
@@ -102,13 +145,17 @@ setMethod("eval_seurat", "seurat",
     } else {
       if (!dir.exists(dir)) dir.create(dir)
     }
+
+    wb <- loadWorkbook(insitu.path, create = FALSE)
     if (!parallel) {
       genes.roc.obj <- lapply(genes.eval, function(x)
-                              eval_seurat_innter(object, x, scheme = scheme))
+                              eval_seurat_innter(object, x, scheme = scheme,
+                                                 insitu = wb))
     } else {
       registerDoMC(2)
       genes.roc.obj <- foreach(x = genes.eval) %dopar% {
-                        eval_seurat_innter(object, x, scheme = scheme)}
+                        eval_seurat_innter(object, x, scheme = scheme,
+                                           insitu = wb)}
     }
     names(genes.roc.obj) <- genes.eval
     genes.auc.val <- sapply(genes.roc.obj, function(o) o$auc)
