@@ -5,7 +5,7 @@
 \title{Evaluate Seurat package performance}
 \usage{
 eval_seurat(object, genes.eval, dir, parallel = TRUE, scheme = c("lasso",
-  "plsr"))
+  "plsr"), insitu.path)
 }
 \arguments{
 \item{object}{The seurat object.}
@@ -17,6 +17,8 @@ eval_seurat(object, genes.eval, dir, parallel = TRUE, scheme = c("lasso",
 \item{parallel}{If "TRUE", \link{foreach} is used to run parallel.}
 
 \item{scheme}{Imputation strategies.}
+
+\item{insitu.path}{Path to in situ staining data.}
 }
 \description{
 Compare the inferred and observed in-situ patterns of landmark
