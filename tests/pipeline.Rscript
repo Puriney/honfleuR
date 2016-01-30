@@ -13,7 +13,7 @@ library(doMC)
 library(foreach)
 source('tests/depends.R')
 
-load('/Users/yunyan/Yun_Codes/Projects/seurat_dev/output_part2.Robj')
+load('/Users/yunyan/Yun_Codes/Projects/seurat_dev/output_part2_before_insitu.Robj')
 
 #
 # Perform imputation
