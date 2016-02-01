@@ -8,12 +8,15 @@ Maintainer: Yun Yan <yy1533@nyu.edu>
 Description: Extension of seurat package. Speed up processing of inferring cell origins.
 License: GPL 3.0
 LazyData: TRUE
-Imports:
+Imports: 
   vioplot,
   pROC,
   XLConnect,
   lars,
   pls
-Suggests:
+Suggests: 
   doMC,
-  foreach
+  foreach,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
