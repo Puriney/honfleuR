@@ -3,11 +3,12 @@ title: "Improvements for Seurat"
 author: "Yun Yan"
 date: "January 31, 2016"
 output:
+  pdf_document:
+    keep_tex: yes
+    number_sections: yes
   html_document:
     number_sections: yes
     theme: default
-  pdf_document:
-    number_sections: yes
 ---
 
 ```{r, echo=FALSE, message=FALSE}
@@ -56,6 +57,8 @@ Impute expression of each landmak gene (response) based on other genes with vari
 2. PLSR. Account for potential linear dependencies among predictors.
 3. Tilling lasso. Learn the data structure and perform imputation.
 
+<!-- ![](imputation-algorithms.PNG) -->
+
 | Step | Lasso                                                                                                                         | PLSR                                                                                                                    | Tilling Lasso                                                                                                              |
 |--------|-------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
 | 1      | Focus on specific landmark gene *G*.                                                                                          | Focus on specific landmark gene *G*.                                                                                    | Focus on specific landmark gene *G*.                                                                                       |
@@ -66,7 +69,6 @@ Impute expression of each landmak gene (response) based on other genes with vari
 | 6      |                                                                                                                               |                                                                                                                         | Set second 20% samples as "unseen" data. Repeat Step 3-5 until the expression of landmark gene is imputed among all cells. |
 | 7      | Apply lasso model on same matrix to impute expression of gene *G*.                                                            | Apply PLSR model on same matrix to impute expression of gene *G*.                                                       | Repeat Step 2-6 for 10 times. The average values are the imputed expressions for gene *G* among all cells.                 |
 | 8      | Iterate Step 1-7 for other landmark genes.                                                                                    | Iterate Step 1-7 for other landmark genes.                                                                              | Iterate Step 1-7 for other landmark genes.                                                                                 |
-
 
 ## Use Lasso
 
@@ -117,7 +119,7 @@ zf1 <- fill_imputed_expr(zf, genes.use = lasso.genes.use, genes.fit = insitu.gen
 
 As the way of performing ROC analysis as in Figure 3H of manuscript, the following AUC results are given by using `honfleuR`'s `eval_seurat` function.
 
-![](fig/fig_log/imputation_schemes.png)
+![](imputation_schemes.png)
 
 # Estimate bimodal distributiion of landmark gene - `fit_gene_k`
 
